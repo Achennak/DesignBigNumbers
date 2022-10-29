@@ -1,93 +1,73 @@
-# Design-SmartCalculator
+Introduction
+When we represent a number on a computer we must allocate a fixed number of bits to it. The number of bits dictates the range of numbers that can be stored. This data limitation applies to all data types, and prevents us from storing large numbers.
 
-1 Introduction
-Calculators are one of the most basic computing machines used by us. All operating systems come with a calculator application. The simplest version allows basic arithmetic on numbers: addition, subtraction, etc.
+One way to represent a number is in terms of its digits, similar to how int is stored in terms of bits, or how a String represents a sequence of characters. In this assignment you will represent large integral numbers in a linked list representation.
 
-Our objective is to design a simple calculator that works only with whole numbers. It supports only three arithmetic operations: addition, subtraction and multiplication. To simulate the button press functionality, the calculator accepts inputs one character at a time. For example, to compute 32+243 the inputs would be '3', '2', '+', '2', '4', '3', '=' in that sequence. Our calculator will also support displaying the "current" state of the calculator (i.e. what we normally see on the calculator screen as we are typing inputs).
+Instead of storing bits, we store individual digits (0-9) in a single node of such a list. We can store them in any order (corresponding to big-endian and little-endian in bit representation). For example, the number 32411 can be stored as 3 -> 2 -> 4 -> 1 -> 1 or 1 -> 1-> 4 -> 2 -> 3 .
 
-Our calculators are "just in time" calculators, i.e. they produce output as soon as it is possible. In other words, they do not wait for the user to enter an entire arithmetic expression before computing. A consequence of this is that they never have to determine the precedence of one operator over another, because they use only one operator at a time.
+Given an integral number, we can shift its digits to the left or right. For example 32411 can be ''left-shifted" to get the number 324110 . Thus left-shifting by one position is equivalent to multiplying the number by 10 (similar to how left-shifting by one bit in a binary representation multiplies the number by 2). Similarly, 32411 can be ''right-shifted" to get the number 3241 , which is the integer-division by 10.
+
+We can support basic addition of a single digit to a number. For example 324115 + 7 = 324122 . Shifting and adding single digits can allow us to create arbitrarily large numbers, one digit at a time. For example 32411 can be created by:
+
+Start with 0 .
+
+Left-shift by 1 position, and add 3.
+
+Left-shift by 1 position (to get 30) and add 2.
+
+Left-shift by 1 position (to get 320) and add 4.
+
+Left-shift by 1 position (to get 3240) and add 1.
+
+Left-shift by 1 position (to get 32410) and add 1.
+
+Numbers can also be added by using simple arithmetic: start from the right-most digits and add them. Record the sum and carry, and add the carry to the next pair of digits, and so on. Note that the numbers may be of different lengths.
 
 2 What to do
-All your code should be in a package called "calculator". Your tests should be in the default package. This ensures that your test can see your classes and interfaces in the same way as any other client.
+All your interfaces and classes should be in the bignumber package. The tests should be in the default package.
 
-2.1 The Calculator interface
-Write an interface Calculator that represents a single calculator. This interface should contain the following:
+Design an interface BigNumber that defines the above operations, specifically with the following method signatures (methods do not return anything unless explicitly stated):
 
-A method input that takes a single character as its only argument. This method should return a Calculator object as a result of processing the input.
+A method length that returns the number of digits in this number.
 
-A method getResult that does not take any arguments and returns the current "result" of the calculator (i.e. the message that we would normally see on the screen) as a String object.
+A method shiftLeft that takes the number of shifts as an argument and shifts this number to the left by that number. A negative number of left-shifts will correspond to those many right shifts.
 
-2.2 The SimpleCalculator implementation
-A simple calculator takes straightforward inputs. Due to limited processing power it cannot work with whole numbers longer than 32 bits. This calculator has the following characteristics:
+A method shiftRight that takes the number of shifts as an argument and shifts this number to the right by that number. The number 0 can be right-shifted any positive number of times, yielding the same number 0 . A negative number of right-shifts will correspond to those many left shifts.
 
-A correct basic sequence of inputs is the first operand, followed by the operator, followed by the second operand, followed by "=" (e.g. 3 2 + 2 4 = ). Note that each operand may have multiple digits.
+A method addDigit that takes a single digit as an argument and adds it to this number. This method throws an IllegalArgumentException if the digit passed to it is not a single non-negative digit.
 
-A valid sequence can contain a sequence of operands and operators (e.g. 3 2 + 2 4 - 1 0 = , 3 2 + 2 4 = - 10 = , etc.).
+A method getDigitAt that takes a position as an argument and returns the digit at that position. Positions start at 0 (rightmost digit). This method throws an IllegalArgumentException if an invalid position is passed.
 
-The result at any point should show either what was entered thus far, or the result. For example, for the sequence of inputs 3 2 + 2 4 = the result after each input should be "3", "32", "32+", "32+2", "32+24", "56" in that order. For the sequence of inputs 3 2 + 2 4 - 1 0 = the result after each input should be "3", "32", "32+", "32+2", "32+24", "56-", "56-1", "56-10", "46" in that order. Before entering any inputs, the result should be the blank string.
+A method copy that returns an identical and independent copy of this number.
 
-The only valid operand characters are 0-9, and the only valid operators are +, - and *.
+A method add that takes another BigNumber and returns the sum of these two numbers. This operation does not change either number.
 
-The input 'C' will clear the calculator inputs. The result after clearing should be the blank string.
+A method to compare two BigNumber objects for ordering, using the Comparable interface.
 
-The calculator does not "infer" any missing inputs. For example, although 32+= , +12+3 , etc. is valid input on a normal calculator, this calculator will report that as an error.
+A method to determine if two numbers are the same.
 
-The calculator does allow inputting "=" multiple times. In this case it will return the same result. For example the result after 3 2 + 2 4 = and 3 2 + 2 4 = = = is the same: 56 . This is not what a normal calculator will do.
+Now implement this interface in a class BigNumberImpl . This implementation represents non-negative numbers of arbitrary lengths. Beyond implementing the BigNumber interface, this implementation should have the following features/obey these constraints:
 
-The calculator does not allow inputting negative numbers, although it can handle negative results.
+You are not allowed to use any of Java's existing list implementations, interfaces, arrays or otherwise any collection classes or maps to implement big numbers. You must create your own list implementation. The implementation may be customized for this application. You may use existing list implementations in your tests.
 
-If an operand overflows, it should throw an IllegalArgumentException and the operand's value before the input that caused it to overflow should be retained.
+You are not allowed to use the BigInteger or any similar existing classes from JDK in your implementation. You may use BigInteger in your tests.
 
-It throws an IllegalArgumentException for all invalid inputs and sequences. However it throws a RuntimeException if a valid input causes an operation to overflow. If the operand does not overflow but the result of the arithmetic does, then the result reported should be 0. For example, a + b - 1 0 = should result in -10 if a+b will overflow.
+This class should have a constructor with no parameters that initializes this number to 0 .
 
-The input method is not expected to change the calling object.
+This class should have another constructor that takes a number as a string and represents it. This constructor should throw an IllegalArgumentException if the string passed to it does not represent a valid number.
 
-Implement this in a class called SimpleCalculator . Write tests to thoroughly test your class.
+This representation should not contain any unnecessary digits. That is, if representing a 5-digit number, there should be exactly 5 digits represented in this object.
 
-2.3 The SmartCalculator implementation
-A smart calculator accepts inputs like a normal calculator. This calculator is backward compatible with the simple calculator (i.e. it can handle everything the simple calculator can). Due to limited processing power it too cannot work with whole numbers longer than 32 bits. However this calculator can also handle the following "smart" inputs:
+This class should include a toString method that returns a string representation of this number, as simply the number itself.
 
-Input "=" multiple times: 3 2 + 2 4 = produces 56 as before. However 3 2 + 2 4 = = and 3 2 + 2 4 = = = are also valid input sequences, and produce 80 and 104 respectively.
+Your implementation should be reasonably efficient. There are several ways you could lose points for efficiency: if tests time out because of an inefficient solution, if your implementation is an order of magnitude less efficient than what is possible for another implementation that obeys all the above constraints, if your implementation regularly encounters a stack overflow error for numbers that have a few hundred digits, etc. Testing your implementation with large inputs is a good way to verify whether it is efficient.
 
-Skipping the second operand: the input 3 2 + = produces 64. The input 3 2 + = = produces 96, and so on. The state at the end of each "=" is the result of the computation thus far.
+2.1 Hints
+Start by creating blank interfaces and classes. Now select an operation and implement it end-to-end (add it to the interface, add empty implementation, tests). Now start with another operation.
 
-Two consecutive operators: 3 2 + - 2 4 = ignores the first operator, and produces 8 as the result.
+Think about how the double-dispatch technique may help you to implement add .
 
-Begin with operator: + 3 2 - 2 4 = ignores the "+" and produces 8 as the result. Note that this only applies to the '+' operator as it has a mathematical meaning when it comes before an operand. All other operators before operands are invalid.
+2.2 Higher order functions
+It is highly recommended that you consider higher-order functions when implementing operations. We will give a small amount of extra credit if you implement them correctly. In order to accomplish this, review the higher order functions, think about how they are applicable to what you are doing in this assignment, and implement them accordingly. Please review the higher-order functions from the lists lectures here and here . You will find various interfaces in the function package Links to an external site. useful to implement higher-order functions (similar to how we used Predicate<T> in the list lecture ).
 
-Like SimpleCalculator it does not allow negative inputs although it can handle negative numbers, and it uses IllegalArgumentException to report all invalid inputs and sequences. However it throws a RuntimeException if a valid input causes an operand to overflow. If the operand does not overflow but the result of the arithmetic does, then the result reported should be 0. For example, a + b - 1 0 = should result in -10 if a+b will overflow.
-
-The input method is not expected to change the calling object.
-
-This calculator's behavior mimics that of the calculator application on Windows XP, Linux and Macs (most recent Windows calculators compute expressions). You can also see such a calculator here Links to an external site. . Therefore you can use the application as a way to check valid and invalid sequences and answers. This may help you to write tests and debug your code.
-
-Please note that you are expected to cover only the above types of smart inputs (types, not just the specific examples above).
-
-Implement this in a class called SmartCalculator . Write tests to thoroughly test your class.
-
-2.4 Tests
-Write tests for your implementations. You may be able to abstract some tests that are common to both implementations. Read the test notes on the course web page to help you design tests effectively.
-
-2.5 Documentation
-We expect your code to be well-commented. The expectations are:
-
-Each interface and class contains a comment above it explaining specifically what it represents. This should be in plain language, understandable by anybody wishing to use it. Comment above a class should be specific: it should not merely state that it is an implementation of a particular interface.
-
-Each public method in the interface should have information about what this method accomplishes (purpose), the nature and explanation of any arguments, return values and exceptions thrown by it and whether it changes the calling object in any way (contract).
-
-If a class implements a method declared in an interface that it implements, and the comments in the interface describe this implementation completely and accurately, there is no need to replicate that documentation in the class. You must mark such methods with the @Override annotation.
-
-All comments should be in Javadoc-style.
-
-3 Grading criteria
-Correctness of the code
-
-Quality and coverage of tests
-
-Design of classes, interfaces and methods
-
-Use of abstraction wherever appropriate
-
-Quality of documentation
-
-Code style
+Write tests that thoroughly test this implementation. As always, it is recommended to write the test before completing the BigNumberImpl implementation. Be sure to consider special/edge cases!
